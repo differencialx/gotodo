@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gotodo/db"
 	"gotodo/models"
+	"gotodo/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -13,8 +14,28 @@ import (
 )
 
 func getTodoList(context *gin.Context) {
+	var err error
+
+	var paginationParams models.OffsetPaginationParams
+
+	err = utils.LimitOffsetParams(context, &paginationParams)
+	if err != nil {
+		badRequest(context, []gin.H{
+			{"message": "Invalid pagination params"},
+		})
+		return
+	}
+
+	offset := (paginationParams.Page - 1) * paginationParams.Limit
+
 	var todos []models.Todo
-	result := db.DB.Find(&todos)
+	var total int64
+
+	tx := db.DB.Session(&gorm.Session{Initialized: true})
+
+	db.DB.Model(&models.Todo{}).Count(&total)
+
+	result := tx.Limit(paginationParams.Limit).Offset(offset).Find(&todos)
 
 	if result.Error != nil {
 		internalServerError(context, []gin.H{
@@ -23,7 +44,13 @@ func getTodoList(context *gin.Context) {
 		return
 	}
 
-	successResponse(context, todos)
+	paginationBody := models.PaginationBody{
+		Total:    int(total),
+		Page:     paginationParams.Page,
+		PageSize: paginationParams.Limit,
+	}
+
+	successResponseWithPagination(context, todos, paginationBody)
 }
 
 func postTodo(context *gin.Context) {

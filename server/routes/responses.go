@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"gotodo/models"
 	"net/http"
 	"reflect"
 
@@ -12,6 +13,14 @@ func successResponse(context *gin.Context, body interface{}) {
 	context.JSON(http.StatusOK, gin.H{
 		"errors": nil,
 		"data":   body,
+	})
+}
+
+func successResponseWithPagination(context *gin.Context, body interface{}, paginationBody models.PaginationBody) {
+	context.JSON(http.StatusOK, gin.H{
+		"errors":     nil,
+		"data":       body,
+		"pagination": paginationBody,
 	})
 }
 
