@@ -1,14 +1,13 @@
-import { useEffect } from 'react'
 import './App.css'
 import TodoList from './components/TodoList'
 
 function App() {
-  useEffect(() => {
-
-  })
-
   return (
-    <TodoList />
+    <div className='container mx-auto px-4'>
+      <div className='mt-10'>
+        <TodoList />
+      </div>
+    </div>
   )
 }
 
